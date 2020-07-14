@@ -50,3 +50,14 @@ Why Allure??
 - Easy to understand and short learning curve. Keeping things simple.
 - Good reporting
 - Junit5 compatibility
+
+
+````
+
+##5 features we were loooking for
+````
+- Launching test cases programmatically up on an event.
+- Test Step dependency - If a test case step fails, the next steps should not be performed for that test data.
+- Ordering test cases in a user defined order. - JUnit supports this by providing the necessary annotations for this.
+- Report generation with specifics around the order of execution and failures. It should be not writing it to the file system
+- For each test data being tested with, any failures should be recorded in the database accordingly.
