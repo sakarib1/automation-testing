@@ -1,6 +1,6 @@
 package edu.balu.test.automate.service;
 
-import edu.balu.test.automate.model.employee.Contact;
+import edu.balu.test.automate.model.contact.Contact;
 import org.springframework.stereotype.Service;
 
 @Service

@@ -1,12 +1,14 @@
 package edu.balu.test.automate.controllers;
 
+import edu.balu.test.automate.SocratesLogWriter;
 import edu.balu.test.automate.tc.billto.BillToSubscriptionTests;
 
 import edu.balu.test.automate.tc.txa.TxAVerificationTestSuite;
+import io.qameta.allure.AllureLifecycle;
 import io.qameta.allure.junitplatform.AllureJunitPlatform;
-import org.assertj.core.util.Arrays;
 import org.junit.platform.launcher.Launcher;
 import org.junit.platform.launcher.LauncherDiscoveryRequest;
+import org.junit.platform.launcher.core.LauncherConfig;
 import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
 import org.junit.platform.launcher.core.LauncherFactory;
 import org.junit.platform.launcher.listeners.SummaryGeneratingListener;
@@ -27,11 +29,11 @@ public class JunitAPI {
 
     Logger log = LoggerFactory.getLogger(JunitAPI.class);
 
-    @GetMapping("/employeeTests")
+    @GetMapping("/billtoTests")
     public ResponseEntity<TestExecutionSummary> runJUnits(){
 
         String pkgName = BillToSubscriptionTests.class.getPackage().getName();
-        TestExecutionSummary summary = discoverAndLaunchJunitTestCases(false,pkgName,null);
+        TestExecutionSummary summary = discoverAndLaunchJunitTestCases(false, false, pkgName,null);
         return ResponseEntity.ok()
                 .header("Custom-Header", "summaryReport")
                 .body(summary);
@@ -40,10 +42,10 @@ public class JunitAPI {
 
 
     @GetMapping("/txaStepsTest")
-    public ResponseEntity<TestExecutionSummary> runRestAssuredStudentTests(){
+    public ResponseEntity<TestExecutionSummary> runRestAssuredMigrationTests(@RequestParam boolean generateAllureReport){
 
         String pkgName = TxAVerificationTestSuite.class.getPackage().getName();
-        TestExecutionSummary summary = discoverAndLaunchJunitTestCases(true, pkgName,"acceptance-tests","smoke");
+        TestExecutionSummary summary = discoverAndLaunchJunitTestCases(true, generateAllureReport,  pkgName,"acceptance-tests","smoke");
 
 
         return ResponseEntity.ok()
@@ -53,10 +55,10 @@ public class JunitAPI {
 
 
     @PostMapping("/executeFilteredTests")
-    public ResponseEntity<TestExecutionSummary> runRestAssuredStudentTests(@RequestBody List<String> tagsList){
+    public ResponseEntity<TestExecutionSummary> runRestAssuredMigrationTests(@RequestBody List<String> tagsList,@RequestParam boolean generateAllureReport){
 
         String pkgName = TxAVerificationTestSuite.class.getPackage().getName();
-        TestExecutionSummary summary = discoverAndLaunchJunitTestCases(true, pkgName, tagsList.toArray(new String[tagsList.size()]));
+        TestExecutionSummary summary = discoverAndLaunchJunitTestCases(true, generateAllureReport, pkgName, tagsList.toArray(new String[tagsList.size()]));
 
 
         return ResponseEntity.ok()
@@ -78,19 +80,24 @@ public class JunitAPI {
         return request;
     }
 
-    private TestExecutionSummary discoverAndLaunchJunitTestCases( boolean registerAllureListener,String pkgName,String... tags){
+    private TestExecutionSummary discoverAndLaunchJunitTestCases(boolean registerAllureListener, boolean generateAllureReport, String pkgName, String... tags){
         LauncherDiscoveryRequest request = buildLauncherDiscoveryRequest(pkgName,tags);
-        Launcher launcher = LauncherFactory.create();
 
-        launcher.discover(request);
         SummaryGeneratingListener summaryListener = new SummaryGeneratingListener();
-        launcher.registerTestExecutionListeners(summaryListener);
-
+        AllureJunitPlatform allureListener  = new AllureJunitPlatform();
         if(registerAllureListener) {
-            AllureJunitPlatform listener = new AllureJunitPlatform();
-            launcher.registerTestExecutionListeners(listener);
+            if(!generateAllureReport)
+                allureListener = new AllureJunitPlatform(new AllureLifecycle(new SocratesLogWriter()));
         }
+        LauncherConfig launcherConfig = LauncherConfig.builder()
+                .enableTestEngineAutoRegistration(true)
+                .enableTestExecutionListenerAutoRegistration(false)
+                .addTestEngines()
+                .addTestExecutionListeners(summaryListener,allureListener)
+                .build();
 
+        Launcher launcher = LauncherFactory.create(launcherConfig);
+        launcher.discover(request);
         launcher.execute(request);
 
         TestExecutionSummary summary = summaryListener.getSummary();

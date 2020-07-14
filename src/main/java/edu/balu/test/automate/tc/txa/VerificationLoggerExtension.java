@@ -49,7 +49,7 @@ public class VerificationLoggerExtension implements TestWatcher, AfterAllCallbac
     }
 
     @Override
-    public void afterAll(ExtensionContext context) throws Exception {
+    public void afterAll(ExtensionContext context) {
         Map<TestExecutionStatus, Long> summary = testExecutionStatus.stream()
                 .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
 
@@ -57,7 +57,7 @@ public class VerificationLoggerExtension implements TestWatcher, AfterAllCallbac
     }
 
     private enum TestExecutionStatus {
-        SUCCESSFUL, ABORTED, FAILED, DISABLED;
+        SUCCESSFUL, ABORTED, FAILED, DISABLED
     }
 
 

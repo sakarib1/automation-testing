@@ -1,6 +1,6 @@
 package edu.balu.test.automate.tc.billto;
 
-import edu.balu.test.automate.model.employee.Contact;
+import edu.balu.test.automate.model.contact.Contact;
 import edu.balu.test.automate.service.ContactService;
 import edu.balu.test.automate.tc.txa.VerificationLoggerExtension;
 import org.junit.jupiter.api.DisplayName;
